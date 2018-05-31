@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zr.mapper.IBookMapper">
+    <resultMap id="bookMap" type="book">
+        <id property="id" column="book_id"/>
+        <result property="name" column="book_name"/>
+        <result property="author" column="book_author"/>
+        <result property="price" column="book_price"/>
+        <result property="cover" column="book_cover"/>
+    </resultMap>
+
+    <!--<select id="findBooks" resultMap="bookMap">
+        SELECT * FROM book_tab  ORDER BY book_id ASC
+    </select>-->
+
+    <select id="findBooks" resultMap="bookMap">
+        <![CDATA[ select a1.* from
+        (select book_tab.*,rownum rn from book_tab) a1
+        where rn between #{start} and #{end}
+      ]]>
+
+    </select>
+
+    <select id="allCount" resultType="java.lang.Integer">
+        select count(*) from book_tab
+    </select>
+</mapper>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图书列表</title>
+    <script src="js/jquery-2.1.1.min.js"></script>
+</head>
+<body>
+<table id="tab" border="1" cellspacing="0" cellpadding="0" width="650px" align="center">
+    <thead style="background-color: cornsilk;">
+    <th height="35px">编号</th>
+    <th>书名</th>
+    <th>作者</th>
+    <th>价格</th>
+    <th>封面</th>
+    </thead>
+    <tbody align="center">
+    </tbody>
+    <tfoot>
+    <tr>
+        <td colspan="5" align="center">
+            每页
+            <select>
+                <option>5</option>
+                <option>10</option>
+                <option>15</option>
+            </select>条|
+            <span id="firstPage" style="color:red;font-weight:bold" onclick="firstPage()">首页</span>|
+            <span id="prePage" style="color:red;font-weight:bold" onclick="prePage()">上一页</span>|
+            <span id="nextPage" style="color:red;font-weight:bold" onclick="nextPage()">下一页</span>|
+            <span id="lastPage" style="color:red;font-weight:bold" onclick="lastPage()">最后一页</span>|
+            <span style="color:red;font-weight:bold">当前第<input style="width: 20px;" id="nowPage" type="text" value="1"/>页</span>|
+            共<input style="width: 20px;" id="count"/>页|
+            <span style="color:red;font-weight:bold">跳转至第<input style="width: 20px;" id="jumpPage" type="text"
+                                                                value="1"/>页</span>
+            <button onclick="jump()">确定</button>
+        </td>
+    </tr>
+    </tfoot>
+
+</table>
+<script type="text/javascript">
+    var allCount;//记录总数
+    var page;//总页数
+    var pageNumber = 1;//默认起始记录
+    var pageSize = parseInt($("select").val());//每页记录数
+
+    window.onload = function () {
+        show();
+        /*获取总记录数*/
+        $.post("allCount.action", function (data) {
+            allCount = data;
+            pageNum();//页面被加载默认的页数
+        }, "json");
+
+    }
+
+    /**
+     * 总页数
+     * */
+    function pageNum() {
+        if (allCount % parseInt($("select").val()) == 0) {
+            page = parseInt(allCount / parseInt($("select").val()));
+            $("#count").val(page);
+        } else {
+            page = parseInt(allCount / parseInt($("select").val())) + 1;
+            $("#count").val(page);
+        }
+    }
+
+    /**
+     * 每页显示的条数
+     * */
+    $("select").change(function () {
+        pageNum();
+        pageSize = parseInt($("select").val());
+        cha = pageSize - pageNumber;
+        if (pageNumber != 1) {
+            pageNumber = 1;
+        }
+        $("#nowPage").val("1");
+        $("#jumpPage").val("1");
+        show();
+    });
+
+    /**
+     * 首页
+     * */
+    function firstPage() {
+        pageNumber = 1;
+        pageSize = parseInt($("select").val());
+        $("#jumpPage").val("1");
+        if ($("#nowPage").val() == 1) {
+            alert("已经是首页了")
+        }
+        $("#nowPage").val("1");
+        show();
+    }
+
+    /**
+     * 上一页
+     * */
+    function prePage() {
+        if (pageSize > parseInt($("select").val())) {
+            $("#nowPage").val(pageSize / parseInt($("select").val()) - 1);
+            $("#jumpPage").val(pageSize / parseInt($("select").val()) - 1);
+            pageSize = pageNumber - 1;
+            pageNumber = pageNumber - parseInt($("select").val());
+            show();
+        } else {
+            alert("已经是首页了")
+        }
+    }
+
+    /**
+     * 下一页
+     * */
+    function nextPage() {
+        if (allCount > pageSize) {
+            $("#nowPage").val(pageSize / parseInt($("select").val()) + 1);
+            $("#jumpPage").val(pageSize / parseInt($("select").val()) + 1);
+            pageNumber = pageNumber + parseInt($("select").val());
+            pageSize = pageNumber + parseInt($("select").val()) - 1;
+            show();
+        } else {
+            alert("已经是最后一页了")
+        }
+    }
+
+    /**
+     * 跳转至第几页
+     * */
+    function jump() {
+        var page = parseInt($("#jumpPage").val());
+        if (page <= parseInt($("#count").val())) {
+            pageSize = page * parseInt($("select").val());
+            pageNumber = (page - 1) * parseInt($("select").val()) + 1;
+            alert(pageNumber);
+            $("#nowPage").val($("#jumpPage").val());
+            show();
+        } else {
+            alert("该页不存在")
+            $("#jumpPage").val($("#nowPage").val());
+
+        }
+    }
+
+    /**
+     * 最后一页
+     * */
+    function lastPage() {
+        pageNumber = parseInt($("#count").val() - 1) * parseInt($("select").val()) + 1;
+        pageSize = allCount;
+        $("#jumpPage").val($("#count").val());
+        if ($("#nowPage").val() == $("#count").val()) {
+            alert("已经是最后一页了")
+        }
+        $("#nowPage").val($("#count").val());
+        show();
+    }
+
+    function show() {
+        $.post("findBooks.action", {pageNumber: pageNumber, pageSize: pageSize}, function (map) {
+            var list = map.rows;
+            var page = map.page;
+            $("#tab tbody").empty();
+            $.each(list, function (index, book) {
+                var tr = $("<tr>");
+                tr.append($("<td>" + book.id + "</td>"))
+                    .append($("<td>" + book.name + "</td>"))
+                    .append($("<td>" + book.price + "</td>"))
+                    .append($("<td>" + book.author + "</td>"))
+                    .append($("<td width='90px'><img src='images/" + book.cover + "' width=\"85px\" height=\"100px\"/></td>"))
+                ;
+                $("#tab tbody").append(tr);
+            });
+
+        }, "json");
+
+    }
+
+    /* $("#prePage").click(function(){
+         $("#prePage").data('name','shangyiye');
+         var name = $("#prePage").data('name');
+         $.post("show.action", {name:name},function () {
+         });
+     });
+     $("#nextPage").click(function(){
+         $("#nextPage").data('name','xiayiye');
+         var name = $("#nextPage").data('name');
+         $.post("show.action", {name:name},function () {
+         });
+     });*/
+</script>
+</body>
+</html>
