@@ -1,7 +1,7 @@
 <component name="ArtifactManager">
-  <artifact type="exploded-war" build-on-make="true" name="ssm-curd:war">
-    <output-path>D:/software/apache-tomcat-7.0.86/webapps</output-path>
-    <root id="root">
+  <artifact type="war" name="ssm-curd:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="ssm-curd-1.0-SNAPSHOT.war">
       <element id="artifact" artifact-name="ssm-curd:war exploded" />
     </root>
   </artifact>
